@@ -64,7 +64,6 @@ app.get('/users', (_req: Request, res: Response) => {
 app.get('/users/:id', (req: Request, res: Response) => {
   console.log(`📋 GET /users/${req.params.id} - Buscando usuário por ID`);
 
-  const userId = parseInt(req.params.id);
   
   if (isNaN(userId)) {
     return res.status(400).json({
