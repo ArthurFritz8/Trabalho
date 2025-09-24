@@ -162,6 +162,50 @@ app.post('/users', (req: Request, res: Response) => {
   return res.status(201).json(response);
 });
 
+// 🔧 EXERCÍCIO 3: PUT para Atualizar Recurso
+// PUT /users/:id - Atualizar um usuário existente
+app.put('/users/:id', (req: Request, res: Response) => {
+  console.log(`📋 PUT /users/${req.params.id} - Atualizando usuário`);
+
+  const userId = parseInt(req.params.id);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({
+      success: false,
+      message: 'ID inválido. O ID deve ser um número.',
+      errors: ['ID inválido']
+    });
+  }
+
+  const userIndex = users.findIndex(u => u.id === userId);
+
+  if (userIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: 'Usuário não encontrado',
+      errors: ['Usuário não encontrado com o ID fornecido']
+    });
+  }
+
+  const { name, email, age, role } = req.body;
+
+  users[userIndex] = {
+    ...users[userIndex],
+    name: name || users[userIndex].name,
+    email: email || users[userIndex].email,
+    age: age || users[userIndex].age,
+    role: role || users[userIndex].role
+  };
+
+  const response: ApiResponse<User> = {
+    success: true,
+    message: 'Usuário atualizado com sucesso',
+    data: users[userIndex]
+  };
+
+  return res.status(200).json(response);
+});
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
@@ -170,4 +214,5 @@ app.listen(PORT, () => {
   console.log('  GET  /users/search');
   console.log('  GET  /users/:id');
   console.log('  POST /users');
+  console.log('  PUT  /users/:id');
 });
