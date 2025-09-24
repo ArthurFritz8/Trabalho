@@ -206,10 +206,9 @@ app.put('/users/:id', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-// 🔧 EXERCÍCIO 4: DELETE para Remover Recurso
-// DELETE /users/:id - Remover um usuário
-app.delete('/users/:id', (req: Request, res: Response) => {
-  console.log(`📋 DELETE /users/${req.params.id} - Removendo usuário`);
+// 🔧 EXERCÍCIO 4: PUT - Atualização Completa
+app.put('/users/:id', (req: Request, res: Response) => {
+  console.log(`📋 PUT /users/${req.params.id} - Atualizando usuário completamente`);
 
   const userId = parseInt(req.params.id);
 
@@ -218,6 +217,48 @@ app.delete('/users/:id', (req: Request, res: Response) => {
       success: false,
       message: 'ID inválido. O ID deve ser um número.',
       errors: ['ID inválido']
+    });
+  }
+
+  const { name, email, age, role } = req.body;
+
+  
+  const errors: string[] = [];
+  if (!name) errors.push('O campo "name" é obrigatório');
+  if (!email) errors.push('O campo "email" é obrigatório');
+  if (age === undefined) errors.push('O campo "age" é obrigatório');
+  if (!role) errors.push('O campo "role" é obrigatório');
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Dados inválidos. Todos os campos são obrigatórios.',
+      errors
+    });
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email inválido',
+      errors: ['Formato de email inválido']
+    });
+  }
+
+  if (role !== 'admin' && role !== 'user') {
+    return res.status(400).json({
+      success: false,
+      message: 'Role inválida',
+      errors: ['Role deve ser "admin" ou "user"']
+    });
+  }
+
+  if (typeof age !== 'number' || age < 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Idade inválida',
+      errors: ['Age deve ser um número positivo']
     });
   }
 
@@ -231,31 +272,33 @@ app.delete('/users/:id', (req: Request, res: Response) => {
     });
   }
 
-  // Verificar se é o último administrador
-  if (users[userIndex].role === 'admin') {
-    const adminCount = users.filter(user => user.role === 'admin').length;
-    
-    if (adminCount === 1) {
-      return res.status(409).json({
-        success: false,
-        message: 'Não é possível remover o último administrador do sistema',
-        errors: ['Operação não permitida: último administrador']
-      });
-    }
-  }
+  const emailExists = users.some((u, index) => 
+    u.email === email && index !== userIndex
+  );
 
-  // Remover o usuário
-  const removedUser = users.splice(userIndex, 1)[0];
+  if (emailExists) {
+    return res.status(409).json({
+      success: false,
+      message: 'Email já está em uso por outro usuário',
+      errors: ['Email duplicado']
+    });
+  }
+  users[userIndex] = {
+    id: userId, 
+    name,
+    email,
+    age,
+    role
+  };
 
   const response: ApiResponse<User> = {
     success: true,
-    message: 'Usuário removido com sucesso',
-    data: removedUser
+    message: 'Usuário atualizado com sucesso',
+    data: users[userIndex]
   };
 
   return res.status(200).json(response);
 });
-
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
@@ -265,5 +308,4 @@ app.listen(PORT, () => {
   console.log('  GET  /users/:id');
   console.log('  POST /users');
   console.log('  PUT  /users/:id');
-  console.log('  DELETE /users/:id');
 });
