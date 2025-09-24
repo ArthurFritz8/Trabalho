@@ -206,6 +206,56 @@ app.put('/users/:id', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
+// 🔧 EXERCÍCIO 4: DELETE para Remover Recurso
+// DELETE /users/:id - Remover um usuário
+app.delete('/users/:id', (req: Request, res: Response) => {
+  console.log(`📋 DELETE /users/${req.params.id} - Removendo usuário`);
+
+  const userId = parseInt(req.params.id);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({
+      success: false,
+      message: 'ID inválido. O ID deve ser um número.',
+      errors: ['ID inválido']
+    });
+  }
+
+  const userIndex = users.findIndex(u => u.id === userId);
+
+  if (userIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: 'Usuário não encontrado',
+      errors: ['Usuário não encontrado com o ID fornecido']
+    });
+  }
+
+  // Verificar se é o último administrador
+  if (users[userIndex].role === 'admin') {
+    const adminCount = users.filter(user => user.role === 'admin').length;
+    
+    if (adminCount === 1) {
+      return res.status(409).json({
+        success: false,
+        message: 'Não é possível remover o último administrador do sistema',
+        errors: ['Operação não permitida: último administrador']
+      });
+    }
+  }
+
+  // Remover o usuário
+  const removedUser = users.splice(userIndex, 1)[0];
+
+  const response: ApiResponse<User> = {
+    success: true,
+    message: 'Usuário removido com sucesso',
+    data: removedUser
+  };
+
+  return res.status(200).json(response);
+});
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
@@ -215,4 +265,5 @@ app.listen(PORT, () => {
   console.log('  GET  /users/:id');
   console.log('  POST /users');
   console.log('  PUT  /users/:id');
+  console.log('  DELETE /users/:id');
 });
