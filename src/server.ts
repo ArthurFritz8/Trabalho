@@ -128,10 +128,46 @@ app.get('/users/:id', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
+// 🔧 EXERCÍCIO 2: POST para Criar Recurso
+// POST /users - Criar um novo usuário
+app.post('/users', (req: Request, res: Response) => {
+  console.log('📋 POST /users - Criando um novo usuário');
+
+  const { name, email, age, role } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Dados inválidos. Os campos "name" e "email" são obrigatórios.',
+      errors: ['"name" e "email" são obrigatórios']
+    });
+  }
+
+  const newUser: User = {
+    id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+    name,
+    email,
+    age: age || 0,
+    role: role || 'user'
+  };
+
+  users.push(newUser);
+
+  const response: ApiResponse<User> = {
+    success: true,
+    message: 'Usuário criado com sucesso',
+    data: newUser
+  };
+
+  return res.status(201).json(response);
+});
+
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log('📝 Endpoints disponíveis:');
   console.log('  GET  /users');
   console.log('  GET  /users/search');
   console.log('  GET  /users/:id');
+  console.log('  POST /users');
 });
