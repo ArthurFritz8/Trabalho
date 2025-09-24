@@ -26,10 +26,10 @@ interface ApiResponse<T = any> {
 }
 
 const users: User[] = [
-  { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'admin', age: 35 },
-  { id: 2, name: 'John Doe', email: 'john@example.com', role: 'user', age: 28 },
-  { id: 3, name: 'Jane Smith', email: 'jane@example.com', role: 'user', age: 24 },
-  { id: 4, name: 'Robert Johnson', email: 'robert@example.com', role: 'user', age: 42 }
+  { id: 1, name: 'Admin Flavio', email: 'admin@example.com', role: 'admin', age: 35 },
+  { id: 2, name: 'Bela', email: 'Bela@example.com', role: 'user', age: 28 },
+  { id: 3, name: 'Antonio Smith', email: 'Smith@example.com', role: 'user', age: 24 },
+  { id: 4, name: 'Baiana', email: 'Baiana@example.com', role: 'user', age: 42 }
 ];
 
 const posts: Post[] = [];
