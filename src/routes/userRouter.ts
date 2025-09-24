@@ -1,0 +1,1 @@
+userRouter("/:id",userController.getUserById)
