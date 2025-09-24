@@ -101,7 +101,6 @@ app.get('/users/age-range', (req: Request, res: Response) => {
   const { min, max } = req.query;
   const errors: string[] = [];
 
-  // Validar se os parâmetros são números válidos
   const minAge = min ? parseInt(min as string) : undefined;
   const maxAge = max ? parseInt(max as string) : undefined;
 
@@ -153,17 +152,14 @@ app.post('/posts', (req: Request, res: Response) => {
   const { title, content, authorId } = req.body;
   const errors: string[] = [];
 
-  // Validar title (mínimo 3 caracteres)
   if (!title || typeof title !== 'string' || title.length < 3) {
     errors.push('O título deve ter no mínimo 3 caracteres');
   }
 
-  // Validar content (mínimo 10 caracteres)
   if (!content || typeof content !== 'string' || content.length < 10) {
     errors.push('O conteúdo deve ter no mínimo 10 caracteres');
   }
 
-  // Validar authorId (deve existir na lista de usuários)
   if (!authorId) {
     errors.push('O ID do autor é obrigatório');
   } else {
@@ -181,14 +177,13 @@ app.post('/posts', (req: Request, res: Response) => {
     });
   }
 
-  // Criar o novo post
   const newPost: Post = {
     id: posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1,
     title,
     content,
     authorId,
     createdAt: new Date(),
-    published: false // Posts são criados como não publicados
+    published: false 
   };
 
   posts.push(newPost);
@@ -230,7 +225,6 @@ app.put('/users/:id', (req: Request, res: Response) => {
   const { name, email, age, role } = req.body;
   const errors: string[] = [];
 
-  // Validar se TODOS os campos foram fornecidos
   if (!name) errors.push('O campo "name" é obrigatório');
   if (!email) errors.push('O campo "email" é obrigatório');
   if (age === undefined) errors.push('O campo "age" é obrigatório');
@@ -244,7 +238,6 @@ app.put('/users/:id', (req: Request, res: Response) => {
     });
   }
 
-  // Validar formato do email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({
@@ -254,7 +247,6 @@ app.put('/users/:id', (req: Request, res: Response) => {
     });
   }
 
-  // Verificar conflito de email com outros usuários
   const emailExists = users.some((u, index) => 
     u.email === email && index !== userIndex
   );
@@ -267,7 +259,6 @@ app.put('/users/:id', (req: Request, res: Response) => {
     });
   }
 
-  // Validar role
   if (role !== 'admin' && role !== 'user') {
     return res.status(400).json({
       success: false,
@@ -276,7 +267,6 @@ app.put('/users/:id', (req: Request, res: Response) => {
     });
   }
 
-  // Validar age
   if (typeof age !== 'number' || age < 0) {
     return res.status(400).json({
       success: false,
@@ -285,9 +275,9 @@ app.put('/users/:id', (req: Request, res: Response) => {
     });
   }
 
-  // Atualizar o usuário (substituição completa)
+
   users[userIndex] = {
-    id: userId, // mantém o ID original
+    id: userId, 
     name,
     email,
     age,
