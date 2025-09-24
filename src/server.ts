@@ -1,0 +1,137 @@
+import express, { Request, Response } from 'express';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  age: number;
+}
+
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  authorId: number;
+  createdAt: Date;
+  published: boolean;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  total?: number;
+  errors?: string[];
+}
+
+const users: User[] = [
+  { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'admin', age: 35 },
+  { id: 2, name: 'John Doe', email: 'john@example.com', role: 'user', age: 28 },
+  { id: 3, name: 'Jane Smith', email: 'jane@example.com', role: 'user', age: 24 },
+  { id: 4, name: 'Robert Johnson', email: 'robert@example.com', role: 'user', age: 42 }
+];
+
+const posts: Post[] = [];
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+app.use((req, _res, next) => {
+  console.log(`📋 ${req.method} ${req.url} - ${new Date().toISOString()}`);
+  next();
+});
+
+// ===== ENDPOINTS =====
+
+app.get('/users', (_req: Request, res: Response) => {
+  console.log('📋 GET /users - Listando todos os usuários');
+  
+  const response: ApiResponse<User[]> = {
+    success: true,
+    message: 'Usuários recuperados com sucesso',
+    data: users,
+    total: users.length
+  };
+  
+  return res.status(200).json(response);
+});
+
+app.get('/users/search', (req: Request, res: Response) => {
+  console.log('📋 GET /users/search - Buscando usuários com filtros');
+  
+  const { role, minAge, maxAge } = req.query;
+  
+  let filteredUsers = [...users];
+  
+  if (role) {
+    filteredUsers = filteredUsers.filter(user => 
+      user.role === role
+    );
+  }
+  
+  if (minAge && !isNaN(Number(minAge))) {
+    filteredUsers = filteredUsers.filter(user => 
+      user.age >= Number(minAge)
+    );
+  }
+  
+  if (maxAge && !isNaN(Number(maxAge))) {
+    filteredUsers = filteredUsers.filter(user => 
+      user.age <= Number(maxAge)
+    );
+  }
+
+  const response: ApiResponse<User[]> = {
+    success: true,
+    message: 'Busca realizada com sucesso',
+    data: filteredUsers,
+    total: filteredUsers.length
+  };
+  
+  return res.status(200).json(response);
+});
+
+// 🔧 EXERCÍCIO 1: GET com Route Parameter
+// GET /users/:id - Buscar um usuário específico pelo ID
+app.get('/users/:id', (req: Request, res: Response) => {
+  console.log(`📋 GET /users/${req.params.id} - Buscando usuário por ID`);
+
+  const userId = parseInt(req.params.id);
+  
+  if (isNaN(userId)) {
+    return res.status(400).json({
+      success: false,
+      message: 'ID inválido. O ID deve ser um número.',
+      errors: ['ID inválido']
+    });
+  }
+  
+  const user = users.find(u => u.id === userId);
+  
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'Usuário não encontrado',
+      errors: ['Usuário não encontrado com o ID fornecido']
+    });
+  }
+  
+  const response: ApiResponse<User> = {
+    success: true,
+    message: 'Usuário encontrado com sucesso',
+    data: user
+  };
+  
+  return res.status(200).json(response);
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  console.log('📝 Endpoints disponíveis:');
+  console.log('  GET  /users');
+  console.log('  GET  /users/search');
+  console.log('  GET  /users/:id');
+});
