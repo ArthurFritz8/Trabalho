@@ -310,5 +310,5 @@ app.listen(PORT, () => {
   console.log('  GET  /users/:id');
   console.log('  GET  /users/age-range');
   console.log('  POST /posts');
-  console.log('  PUT  /users/:id');
+  console.log('  PUT  /users/:idd');
 });
