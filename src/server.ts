@@ -59,41 +59,6 @@ app.get('/users', (_req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-app.get('/users/search', (req: Request, res: Response) => {
-  console.log('📋 GET /users/search - Buscando usuários com filtros');
-  
-  const { role, minAge, maxAge } = req.query;
-  
-  let filteredUsers = [...users];
-  
-  if (role) {
-    filteredUsers = filteredUsers.filter(user => 
-      user.role === role
-    );
-  }
-  
-  if (minAge && !isNaN(Number(minAge))) {
-    filteredUsers = filteredUsers.filter(user => 
-      user.age >= Number(minAge)
-    );
-  }
-  
-  if (maxAge && !isNaN(Number(maxAge))) {
-    filteredUsers = filteredUsers.filter(user => 
-      user.age <= Number(maxAge)
-    );
-  }
-
-  const response: ApiResponse<User[]> = {
-    success: true,
-    message: 'Busca realizada com sucesso',
-    data: filteredUsers,
-    total: filteredUsers.length
-  };
-  
-  return res.status(200).json(response);
-});
-
 // 🔧 EXERCÍCIO 1: GET com Route Parameter
 // GET /users/:id - Buscar um usuário específico pelo ID
 app.get('/users/:id', (req: Request, res: Response) => {
@@ -128,184 +93,120 @@ app.get('/users/:id', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-// 🔧 EXERCÍCIO 2: POST para Criar Recurso
-// POST /users - Criar um novo usuário
-app.post('/users', (req: Request, res: Response) => {
-  console.log('📋 POST /users - Criando um novo usuário');
+// 🔧 EXERCÍCIO 2: GET com Query Parameters Avançados
+// GET /users/age-range - Filtrar usuários por faixa etária
+app.get('/users/age-range', (req: Request, res: Response) => {
+  console.log('📋 GET /users/age-range - Filtrando usuários por faixa etária');
 
-  const { name, email, age, role } = req.body;
-
-  if (!name || !email) {
-    return res.status(400).json({
-      success: false,
-      message: 'Dados inválidos. Os campos "name" e "email" são obrigatórios.',
-      errors: ['"name" e "email" são obrigatórios']
-    });
-  }
-
-  const newUser: User = {
-    id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-    name,
-    email,
-    age: age || 0,
-    role: role || 'user'
-  };
-
-  users.push(newUser);
-
-  const response: ApiResponse<User> = {
-    success: true,
-    message: 'Usuário criado com sucesso',
-    data: newUser
-  };
-
-  return res.status(201).json(response);
-});
-
-// 🔧 EXERCÍCIO 3: PUT para Atualizar Recurso
-// PUT /users/:id - Atualizar um usuário existente
-app.put('/users/:id', (req: Request, res: Response) => {
-  console.log(`📋 PUT /users/${req.params.id} - Atualizando usuário`);
-
-  const userId = parseInt(req.params.id);
-
-  if (isNaN(userId)) {
-    return res.status(400).json({
-      success: false,
-      message: 'ID inválido. O ID deve ser um número.',
-      errors: ['ID inválido']
-    });
-  }
-
-  const userIndex = users.findIndex(u => u.id === userId);
-
-  if (userIndex === -1) {
-    return res.status(404).json({
-      success: false,
-      message: 'Usuário não encontrado',
-      errors: ['Usuário não encontrado com o ID fornecido']
-    });
-  }
-
-  const { name, email, age, role } = req.body;
-
-  users[userIndex] = {
-    ...users[userIndex],
-    name: name || users[userIndex].name,
-    email: email || users[userIndex].email,
-    age: age || users[userIndex].age,
-    role: role || users[userIndex].role
-  };
-
-  const response: ApiResponse<User> = {
-    success: true,
-    message: 'Usuário atualizado com sucesso',
-    data: users[userIndex]
-  };
-
-  return res.status(200).json(response);
-});
-
-// 🔧 EXERCÍCIO 4: PUT - Atualização Completa
-app.put('/users/:id', (req: Request, res: Response) => {
-  console.log(`📋 PUT /users/${req.params.id} - Atualizando usuário completamente`);
-
-  const userId = parseInt(req.params.id);
-
-  if (isNaN(userId)) {
-    return res.status(400).json({
-      success: false,
-      message: 'ID inválido. O ID deve ser um número.',
-      errors: ['ID inválido']
-    });
-  }
-
-  const { name, email, age, role } = req.body;
-
-  
+  const { min, max } = req.query;
   const errors: string[] = [];
-  if (!name) errors.push('O campo "name" é obrigatório');
-  if (!email) errors.push('O campo "email" é obrigatório');
-  if (age === undefined) errors.push('O campo "age" é obrigatório');
-  if (!role) errors.push('O campo "role" é obrigatório');
+
+  // Validar se os parâmetros são números válidos
+  const minAge = min ? parseInt(min as string) : undefined;
+  const maxAge = max ? parseInt(max as string) : undefined;
+
+  if (min && isNaN(minAge!)) {
+    errors.push('O parâmetro "min" deve ser um número válido');
+  }
+
+  if (max && isNaN(maxAge!)) {
+    errors.push('O parâmetro "max" deve ser um número válido');
+  }
+
+  if (minAge && maxAge && minAge > maxAge) {
+    errors.push('A idade mínima não pode ser maior que a idade máxima');
+  }
 
   if (errors.length > 0) {
     return res.status(400).json({
       success: false,
-      message: 'Dados inválidos. Todos os campos são obrigatórios.',
+      message: 'Parâmetros inválidos',
       errors
     });
   }
-  
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email inválido',
-      errors: ['Formato de email inválido']
-    });
+
+  let filteredUsers = [...users];
+
+  if (minAge !== undefined) {
+    filteredUsers = filteredUsers.filter(user => user.age >= minAge);
   }
 
-  if (role !== 'admin' && role !== 'user') {
-    return res.status(400).json({
-      success: false,
-      message: 'Role inválida',
-      errors: ['Role deve ser "admin" ou "user"']
-    });
+  if (maxAge !== undefined) {
+    filteredUsers = filteredUsers.filter(user => user.age <= maxAge);
   }
 
-  if (typeof age !== 'number' || age < 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Idade inválida',
-      errors: ['Age deve ser um número positivo']
-    });
-  }
-
-  const userIndex = users.findIndex(u => u.id === userId);
-
-  if (userIndex === -1) {
-    return res.status(404).json({
-      success: false,
-      message: 'Usuário não encontrado',
-      errors: ['Usuário não encontrado com o ID fornecido']
-    });
-  }
-
-  const emailExists = users.some((u, index) => 
-    u.email === email && index !== userIndex
-  );
-
-  if (emailExists) {
-    return res.status(409).json({
-      success: false,
-      message: 'Email já está em uso por outro usuário',
-      errors: ['Email duplicado']
-    });
-  }
-  users[userIndex] = {
-    id: userId, 
-    name,
-    email,
-    age,
-    role
-  };
-
-  const response: ApiResponse<User> = {
+  const response: ApiResponse<User[]> = {
     success: true,
-    message: 'Usuário atualizado com sucesso',
-    data: users[userIndex]
+    message: 'Usuários filtrados com sucesso',
+    data: filteredUsers,
+    total: filteredUsers.length
   };
 
   return res.status(200).json(response);
+});
+
+// 🔧 EXERCÍCIO 3: POST com Validações Personalizadas
+// POST /posts - Criar um novo post
+app.post('/posts', (req: Request, res: Response) => {
+  console.log('📋 POST /posts - Criando um novo post');
+
+  const { title, content, authorId } = req.body;
+  const errors: string[] = [];
+
+  // Validar title (mínimo 3 caracteres)
+  if (!title || typeof title !== 'string' || title.length < 3) {
+    errors.push('O título deve ter no mínimo 3 caracteres');
+  }
+
+  // Validar content (mínimo 10 caracteres)
+  if (!content || typeof content !== 'string' || content.length < 10) {
+    errors.push('O conteúdo deve ter no mínimo 10 caracteres');
+  }
+
+  // Validar authorId (deve existir na lista de usuários)
+  if (!authorId) {
+    errors.push('O ID do autor é obrigatório');
+  } else {
+    const authorExists = users.some(user => user.id === authorId);
+    if (!authorExists) {
+      errors.push('O autor informado não existe');
+    }
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Dados inválidos',
+      errors
+    });
+  }
+
+  // Criar o novo post
+  const newPost: Post = {
+    id: posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1,
+    title,
+    content,
+    authorId,
+    createdAt: new Date(),
+    published: false // Posts são criados como não publicados
+  };
+
+  posts.push(newPost);
+
+  const response: ApiResponse<Post> = {
+    success: true,
+    message: 'Post criado com sucesso',
+    data: newPost
+  };
+
+  return res.status(201).json(response);
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log('📝 Endpoints disponíveis:');
   console.log('  GET  /users');
-  console.log('  GET  /users/search');
   console.log('  GET  /users/:id');
-  console.log('  POST /users');
-  console.log('  PUT  /users/:id');
+  console.log('  GET  /users/age-range');
+  console.log('  POST /posts');
 });
