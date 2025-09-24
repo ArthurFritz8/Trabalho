@@ -202,6 +202,107 @@ app.post('/posts', (req: Request, res: Response) => {
   return res.status(201).json(response);
 });
 
+// 🔧 EXERCÍCIO 4: PUT - Atualização Completa
+// PUT /users/:id - Atualizar um usuário completamente
+app.put('/users/:id', (req: Request, res: Response) => {
+  console.log(`📋 PUT /users/${req.params.id} - Atualizando usuário completamente`);
+
+  const userId = parseInt(req.params.id);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({
+      success: false,
+      message: 'ID inválido. O ID deve ser um número.',
+      errors: ['ID inválido']
+    });
+  }
+
+  const userIndex = users.findIndex(u => u.id === userId);
+
+  if (userIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: 'Usuário não encontrado',
+      errors: ['Usuário não encontrado com o ID fornecido']
+    });
+  }
+
+  const { name, email, age, role } = req.body;
+  const errors: string[] = [];
+
+  // Validar se TODOS os campos foram fornecidos
+  if (!name) errors.push('O campo "name" é obrigatório');
+  if (!email) errors.push('O campo "email" é obrigatório');
+  if (age === undefined) errors.push('O campo "age" é obrigatório');
+  if (!role) errors.push('O campo "role" é obrigatório');
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Dados inválidos. Todos os campos são obrigatórios.',
+      errors
+    });
+  }
+
+  // Validar formato do email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email inválido',
+      errors: ['Formato de email inválido']
+    });
+  }
+
+  // Verificar conflito de email com outros usuários
+  const emailExists = users.some((u, index) => 
+    u.email === email && index !== userIndex
+  );
+
+  if (emailExists) {
+    return res.status(409).json({
+      success: false,
+      message: 'Email já está em uso por outro usuário',
+      errors: ['Email duplicado']
+    });
+  }
+
+  // Validar role
+  if (role !== 'admin' && role !== 'user') {
+    return res.status(400).json({
+      success: false,
+      message: 'Role inválida',
+      errors: ['Role deve ser "admin" ou "user"']
+    });
+  }
+
+  // Validar age
+  if (typeof age !== 'number' || age < 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Idade inválida',
+      errors: ['Age deve ser um número positivo']
+    });
+  }
+
+  // Atualizar o usuário (substituição completa)
+  users[userIndex] = {
+    id: userId, // mantém o ID original
+    name,
+    email,
+    age,
+    role
+  };
+
+  const response: ApiResponse<User> = {
+    success: true,
+    message: 'Usuário atualizado com sucesso',
+    data: users[userIndex]
+  };
+
+  return res.status(200).json(response);
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log('📝 Endpoints disponíveis:');
@@ -209,4 +310,5 @@ app.listen(PORT, () => {
   console.log('  GET  /users/:id');
   console.log('  GET  /users/age-range');
   console.log('  POST /posts');
+  console.log('  PUT  /users/:id');
 });
