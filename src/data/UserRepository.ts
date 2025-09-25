@@ -30,7 +30,7 @@ export class UserRepository {
 
     users[userIndex] = {
       ...userData,
-      id: userId // Garantir que o ID não mude
+      id: userId 
     };
     return users[userIndex];
   }

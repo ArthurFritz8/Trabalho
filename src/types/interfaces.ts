@@ -1,4 +1,3 @@
-// Interfaces compartilhadas entre todas as camadas
 export interface User {
   id: number;
   name: string;

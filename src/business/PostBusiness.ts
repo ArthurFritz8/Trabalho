@@ -56,7 +56,6 @@ export class PostBusiness {
   updatePost(postId: number, postData: Partial<Post>): { success: boolean; post?: Post; errors?: string[] } {
     const errors: string[] = [];
     
-    // Verificar campos não permitidos
     const disallowedFields = ['id', 'authorId', 'createdAt'];
     const receivedFields = Object.keys(postData);
     
@@ -65,7 +64,6 @@ export class PostBusiness {
       errors.push(`Os campos ${illegalFields.join(', ')} não podem ser atualizados`);
     }
 
-    // Validar campos se estiverem presentes
     if ('title' in postData) {
       const { title } = postData;
       if (typeof title !== 'string' || title.length < 3) {
@@ -91,7 +89,6 @@ export class PostBusiness {
       return { success: false, errors };
     }
 
-    // Remover campos não permitidos
     const filteredData: Partial<Post> = {};
     if ('title' in postData) filteredData.title = postData.title;
     if ('content' in postData) filteredData.content = postData.content;
@@ -105,7 +102,28 @@ export class PostBusiness {
     return { success: true, post: updatedPost };
   }
 
-  deletePost(postId: number): boolean {
-    return this.postRepository.deletePost(postId);
+  deletePostWithAuth(postId: number, userId: number): { success: boolean; errors?: string[] } {
+    const post = this.postRepository.getPostById(postId);
+    
+    if (!post) {
+      return { success: false, errors: ['Post não encontrado'] };
+  }
+    
+    const user = this.userRepository.getUserById(userId);
+    
+    if (!user) {
+      return { success: false, errors: ['Usuário não encontrado'] };
+}
+    
+    if (post.authorId !== userId && user.role !== 'admin') {
+      return { 
+        success: false, 
+        errors: ['Sem permissão para excluir este post. Apenas o autor ou administradores podem excluir.'] 
+      };
+    }
+    
+    const deleted = this.postRepository.deletePost(postId);
+    
+    return { success: deleted };
   }
 }

@@ -4,7 +4,6 @@ import { UserController } from '../controller/UserController';
 const userRouter = express.Router();
 const userController = new UserController();
 
-// Rotas de usuários
 userRouter.get('/', userController.getAllUsers);
 userRouter.get('/age-range', userController.getUsersByAgeRange);
 userRouter.get('/:id', userController.getUserById);

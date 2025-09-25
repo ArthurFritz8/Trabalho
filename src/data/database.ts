@@ -1,7 +1,5 @@
-// Armazenamento de dados em memória
 import { User, Post } from '../types/interfaces';
 
-// Dados iniciais
 export const users: User[] = [
   { id: 1, name: 'Admin Flavio', email: 'admin@example.com', role: 'admin', age: 35 },
   { id: 2, name: 'Bela', email: 'Bela@example.com', role: 'user', age: 28 },

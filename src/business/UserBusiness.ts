@@ -23,7 +23,6 @@ export class UserBusiness {
   updateUser(userId: number, userData: User): { success: boolean; user?: User; errors?: string[] } {
     const errors: string[] = [];
 
-    // Validações
     if (!userData.name) errors.push('O campo "name" é obrigatório');
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,7 +44,6 @@ export class UserBusiness {
       errors.push('Role deve ser "admin" ou "user"');
     }
 
-    // Verificar se o email já está em uso por outro usuário
     if (userData.email && this.userRepository.isEmailInUse(userData.email, userId)) {
       errors.push('Email duplicado');
       return { success: false, errors };
