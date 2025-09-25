@@ -19,6 +19,17 @@ export class PostBusiness {
     return this.postRepository.getPostById(id);
   }
 
+  getPostsByAuthorId(authorId: number): { success: boolean; posts?: Post[]; errors?: string[] } {
+    const user = this.userRepository.getUserById(authorId);
+    
+    if (!user) {
+      return { success: false, errors: ['Autor não encontrado'] };
+    }
+    
+    const posts = this.postRepository.getPostsByAuthorId(authorId);
+    return { success: true, posts };
+  }
+
   createPost(title: string, content: string, authorId: number): { success: boolean; post?: Post; errors?: string[] } {
     const errors: string[] = [];
 
@@ -107,13 +118,13 @@ export class PostBusiness {
     
     if (!post) {
       return { success: false, errors: ['Post não encontrado'] };
-  }
+    }
     
     const user = this.userRepository.getUserById(userId);
     
     if (!user) {
       return { success: false, errors: ['Usuário não encontrado'] };
-}
+    }
     
     if (post.authorId !== userId && user.role !== 'admin') {
       return { 

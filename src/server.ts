@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import userRouter from './routes/userRouter';
 import postRouter from './routes/postRouter';
 
@@ -6,6 +7,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.use(cors()); 
 
 app.use((req, _res, next) => {
   console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
@@ -22,9 +24,12 @@ app.listen(PORT, () => {
   console.log('  GET  /users/:id');
   console.log('  GET  /users/age-range');
   console.log('  PUT  /users/:id');
+  console.log('  DELETE /users/cleanup-inactive');
   console.log('  POST /posts');
   console.log('  GET  /posts');
   console.log('  GET  /posts/:id');
   console.log('  PATCH /posts/:id');
   console.log('  DELETE /posts/:id');
 });
+
+export default app; 

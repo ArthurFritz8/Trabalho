@@ -10,6 +10,10 @@ export class UserRepository {
     return users.find(u => u.id === id);
   }
 
+  getUserByEmail(email: string): User | undefined {
+    return users.find(u => u.email === email);
+  }
+
   getUsersByAgeRange(minAge?: number, maxAge?: number): User[] {
     let filteredUsers = [...users];
 
@@ -39,5 +43,19 @@ export class UserRepository {
     return users.some(user => 
       user.email === email && (excludeUserId === undefined || user.id !== excludeUserId)
     );
+  }
+
+  removeInactiveUsers(userIds: number[]): User[] {
+    const removedUsers: User[] = [];
+    
+    userIds.forEach(id => {
+      const index = users.findIndex(user => user.id === id);
+      if (index !== -1) {
+        removedUsers.push({...users[index]});
+        users.splice(index, 1);
+      }
+    });
+    
+    return removedUsers;
   }
 }

@@ -10,6 +10,10 @@ export class PostRepository {
     return posts.find(p => p.id === id);
   }
 
+  getPostsByAuthorId(authorId: number): Post[] {
+    return posts.filter(p => p.authorId === authorId);
+  }
+
   createPost(post: Omit<Post, 'id' | 'createdAt'>): Post {
     const newPost: Post = {
       ...post,

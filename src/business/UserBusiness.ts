@@ -1,11 +1,14 @@
 import { User } from '../types/interfaces';
 import { UserRepository } from '../data/UserRepository';
+import { PostRepository } from '../data/PostRepository';
 
 export class UserBusiness {
   private userRepository: UserRepository;
+  private postRepository: PostRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.postRepository = new PostRepository();
   }
 
   getAllUsers(): User[] {
@@ -14,6 +17,10 @@ export class UserBusiness {
 
   getUserById(id: number): User | undefined {
     return this.userRepository.getUserById(id);
+  }
+
+  getUserByEmail(email: string): User | undefined {
+    return this.userRepository.getUserByEmail(email);
   }
 
   getUsersByAgeRange(minAge?: number, maxAge?: number): User[] {
@@ -59,5 +66,36 @@ export class UserBusiness {
     }
 
     return { success: true, user: updatedUser };
+  }
+
+  cleanupInactiveUsers(confirm: boolean): { success: boolean; removedUsers?: User[]; errors?: string[] } {
+    if (!confirm) {
+      return { 
+        success: false, 
+        errors: ['Confirmação necessária. Adicione o parâmetro confirm=true.'] 
+      };
+}
+    
+    const allUsers = this.userRepository.getAllUsers();
+    const allPosts = this.postRepository.getAllPosts();
+    
+    const inactiveUserIds = allUsers
+      .filter(user => user.role !== 'admin') 
+      .filter(user => !allPosts.some(post => post.authorId === user.id)) 
+      .map(user => user.id);
+    
+    if (inactiveUserIds.length === 0) {
+      return { 
+        success: true, 
+        removedUsers: [] 
+      };
+    }
+    
+    const removedUsers = this.userRepository.removeInactiveUsers(inactiveUserIds);
+    
+    return { 
+      success: true, 
+      removedUsers 
+    };
   }
 }

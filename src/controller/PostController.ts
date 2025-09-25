@@ -9,6 +9,86 @@ export class PostController {
     this.postBusiness = new PostBusiness();
   }
 
+  getAllPosts = (_req: Request, res: Response) => {
+    console.log('GET /posts - Listando todos os posts');
+    
+    const posts = this.postBusiness.getAllPosts();
+    
+    const response: ApiResponse = {
+      success: true,
+      message: 'Posts recuperados com sucesso',
+      data: posts,
+      total: posts.length
+    };
+    
+    return res.status(200).json(response);
+  }
+
+  getPostById = (req: Request, res: Response) => {
+    console.log(`GET /posts/${req.params.id} - Buscando post por ID`);
+
+    const postId = parseInt(req.params.id);
+    
+    if (isNaN(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID inválido. O ID deve ser um número.',
+        errors: ['ID inválido']
+      });
+    }
+    
+    const post = this.postBusiness.getPostById(postId);
+    
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post não encontrado',
+        errors: ['Post não encontrado com o ID fornecido']
+      });
+    }
+    
+    const response: ApiResponse = {
+      success: true,
+      message: 'Post encontrado com sucesso',
+      data: post
+    };
+    
+    return res.status(200).json(response);
+  }
+
+  getPostsByAuthor = (req: Request, res: Response) => {
+    console.log(`GET /posts/author/${req.params.authorId} - Buscando posts por autor`);
+    
+    const authorId = parseInt(req.params.authorId);
+    
+    if (isNaN(authorId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID do autor inválido. O ID deve ser um número.',
+        errors: ['ID inválido']
+      });
+    }
+    
+    const result = this.postBusiness.getPostsByAuthorId(authorId);
+    
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        message: 'Autor não encontrado',
+        errors: result.errors
+      });
+    }
+    
+    const response: ApiResponse = {
+      success: true,
+      message: 'Posts do autor recuperados com sucesso',
+      data: result.posts,
+      total: result.posts?.length
+    };
+    
+    return res.status(200).json(response);
+  }
+
   createPost = (req: Request, res: Response) => {
     console.log('POST /posts - Criando um novo post');
 
@@ -106,52 +186,5 @@ export class PostController {
       success: true,
       message: 'Post removido com sucesso'
     });
-  }
-
-  getAllPosts = (_req: Request, res: Response) => {
-    console.log('GET /posts - Listando todos os posts');
-    
-    const posts = this.postBusiness.getAllPosts();
-    
-    const response: ApiResponse = {
-      success: true,
-      message: 'Posts recuperados com sucesso',
-      data: posts,
-      total: posts.length
-    };
-    
-    return res.status(200).json(response);
-}
-
-  getPostById = (req: Request, res: Response) => {
-    console.log(`GET /posts/${req.params.id} - Buscando post por ID`);
-
-    const postId = parseInt(req.params.id);
-    
-    if (isNaN(postId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'ID inválido. O ID deve ser um número.',
-        errors: ['ID inválido']
-      });
-    }
-    
-    const post = this.postBusiness.getPostById(postId);
-    
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: 'Post não encontrado',
-        errors: ['Post não encontrado com o ID fornecido']
-      });
-    }
-    
-    const response: ApiResponse = {
-      success: true,
-      message: 'Post encontrado com sucesso',
-      data: post
-    };
-    
-    return res.status(200).json(response);
   }
 }
